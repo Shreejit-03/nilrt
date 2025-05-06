@@ -1,0 +1,28 @@
+name: Manual workflow
+
+on:
+  workflow_dispatch:
+    inputs:
+      filename:
+        description: 'Provide the path to the debug script'
+        default: 'scripts/dev/upstream_merge/upstream_merge.py'
+        required: true
+        type: string
+
+jobs:
+  test_run_a_python_script:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout current branch
+      uses: actions/checkout@v3
+      with:
+        ref: ${{ github.ref }}   # Ensures the correct branch (e.g., automation2) is used
+
+    - name: Print working directory
+      run: pwd
+    
+    - name: List repo contents
+      run: ls -R
+
+    - name: Run Python debug script
+      run: python3 ${{ inputs.filename }}
