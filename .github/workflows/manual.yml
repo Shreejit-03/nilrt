@@ -5,7 +5,7 @@ on:
     inputs:
       filename:
         description: 'Provide the path to the debug script'
-        default: 'scripts/dev/upstream_merge/upstream_merge.py'
+        default: 'scripts/dev/upstream_merge/upstream_merge.py -c scripts/dev/upstream_merge/repos.conf'
         required: true
         type: string
 
@@ -16,13 +16,13 @@ jobs:
     - name: Checkout current branch
       uses: actions/checkout@v3
       with:
-        ref: ${{ github.ref }}   # Ensures the correct branch (e.g., automation2) is used
+        ref: ${{ github.ref }}
 
     - name: Print working directory
       run: pwd
     
     - name: List repo contents
-      run: ls -R
+      run: ls
 
     - name: Run Python debug script
       run: python3 ${{ inputs.filename }}
