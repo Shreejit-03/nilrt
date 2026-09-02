@@ -43,11 +43,20 @@ USED_IPS=()
 
 # Auto-detect NILRT image version from local docker images (used by 'run').
 if [[ -z "${NILRT_VERSION:-}" ]]; then
-    NILRT_VERSION=$(docker images --format '{{.Tag}}' nilrt-runmode-container 2>/dev/null \
-        | grep -v '^<none>$' | sort -V | tail -n1)
+    NILRT_VERSION=$(
+        docker images --format '{{.Tag}}' nilrt-runmode-container 2>/dev/null \
+            | awk '$0 != "<none>"' | sort -V | tail -n1 || true
+    )
     [[ -z "$NILRT_VERSION" ]] && NILRT_VERSION="latest"
 fi
 export NILRT_VERSION
+
+verify_local_image() {
+    local image_ref="$1"
+    if ! $DOCKER_CMD image inspect "$image_ref" &>/dev/null; then
+        err "Local Docker image '${image_ref}' was not found. Load or build the NILRT image first (see docs/README.containers.md)."
+    fi
+}
 
 # Colors
 RED='\033[0;31m'
@@ -463,6 +472,13 @@ cmd_run() {
         esac
     done
     [[ "$count" =~ ^[0-9]+$ && "$count" -ge 1 ]] || err "Count must be a positive integer."
+
+    local image_name
+    case "$service" in
+        nilrt) image_name="nilrt-runmode-container:${NILRT_VERSION}" ;;
+        nilrt-slim) image_name="nilrt-slim-container:${NILRT_VERSION}-slim" ;;
+    esac
+    verify_local_image "$image_name"
 
     # Read the network's subnet/gateway/range and the addresses already taken
     # by reservations or locally-attached containers.
